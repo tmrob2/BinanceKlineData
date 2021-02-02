@@ -1,4 +1,4 @@
-#Binance CLI helper
+# Binance CLI helper
 
 This is a tool which connects to binance and downloads kline data to a postgres
 database using SQLAlchemy
