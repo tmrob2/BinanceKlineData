@@ -1,0 +1,15 @@
+class Config:
+    DATABASE = {
+            "drivername": "postgresql",
+            "username": "mydbusrname",
+            "password": "strong%password%from%password%generator",
+            "host": '192.168.0.xxx', # server location if on local use 'localhost'
+            "database": "mydatabasename",
+            "port": 5432 # default postgres port
+        }
+    BINANCE_TESTNET_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxx'
+    BINANCE_TESTNET_API_SECRET = 'xxxxxxxxxxxxxxxxxxxxxx'
+    BINANCE_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxx'
+    BINANCE_API_SECRET = 'xxxxxxxxxxxxxxxxxxxxxx'
+    URI = "https://fapi.binance.com"
+    TESTNET_URI = 'https://testnet.binancefuture.com'
