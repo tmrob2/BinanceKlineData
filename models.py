@@ -45,3 +45,10 @@ class Binance_v2_8h_btcusdt(Base):
     takerBuyBaseAssetVolume = Column('takerBuyBaseAssetVolume', Float)
     takerBuyQuoteAssetVolume = Column('takerBuyQuoteAssetVolume', Float)
     ignore = Column('ignore', BigInteger)
+
+class Binance_funding_btcusdt(Base):
+    __tablename__ = "binance_v2_funding_btcusdt"
+    id = Column(String, primary_key=True)
+    symbol = Column("symbol", String)
+    fundingRate = Column("fundingRate", Float)
+    fundingTime = Column("fundingTime", TIMESTAMP)

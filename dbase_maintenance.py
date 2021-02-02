@@ -1,4 +1,4 @@
-from models import create_engine, create_table, Base
+from models import create_engine, create_table, Base, Binance_funding_btcusdt
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.engine.url import URL
@@ -23,9 +23,10 @@ session = DBSession()
 @click.option('--interval', default="1d", help="kline interval", type=click.Choice([constants.INTERVALS.i_1d, constants.INTERVALS.i_8h]))
 @click.option('--test', default='y', help="connect to testnet or mainnet", type=click.BOOL)
 @click.argument('symbol', type=click.Choice([constants.SYMBOLS.BNBUSDT, constants.SYMBOLS.BTCUSDT]))
-def get_candle_stick_data(interval, test, symbol):
+def get_kline_and_funding(interval, test, symbol):
     tbl_dict = {"1d": constants.DBTABLE.iD, "8h": constants.DBTABLE.i8h}
     session.query(tbl_dict[interval]).delete()
+    session.query(Binance_funding_btcusdt).delete()
     session.commit()
     if test:
         client = binance_f.RequestClient(api_key=config.Config.BINANCE_TESTNET_API_KEY,
@@ -36,7 +37,6 @@ def get_candle_stick_data(interval, test, symbol):
                                          secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
                                          url=config.Config.URI)
     data: FuncResponse = client.get_candlestick_data(symbol=symbol, interval=interval, startTime=None, endTime=None, limit=1500)
-    # generate a list of dicts from the data as list of dicts can be easily converted into a pandas dataframe object
     ls = []
     for candlestick in data.response:
         d = candlestick.__dict__
@@ -47,3 +47,28 @@ def get_candle_stick_data(interval, test, symbol):
     df = pd.DataFrame(ls)
     # push to sql
     df.to_sql(name=tbl_dict[interval].__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
+    funding_ls = []
+    response_len = 1000
+    start_time = 1567864800000
+    counter = 0
+    while response_len == 1000:
+        click.echo(f"Getting funding rate: {counter}")
+        funding: FuncResponse = client.get_funding_rate(symbol=symbol, startTime=start_time, limit=1000)
+        response_len = len(funding.response)
+        # generate a list of dicts from the data as list of dicts can be easily converted into a pandas dataframe object
+
+        for funding_row in funding.response:
+            d_fund = funding_row.__dict__
+            d_fund["id"] = f"{symbol}-{d_fund['fundingTime']}"
+            new_funding_time = int(d_fund["fundingTime"])
+            d_fund["fundingTime"] = datetime.datetime.utcfromtimestamp(d_fund['fundingTime'] / 1e3)
+            funding_ls.append(d_fund)
+            start_time_date_format = datetime.datetime.utcfromtimestamp(new_funding_time / 1e3)
+            utc_dt = start_time_date_format + datetime.timedelta(hours=8)
+            start_time = int(utc_dt.replace(tzinfo=datetime.timezone.utc).timestamp()) * 1000
+
+        counter += 1
+
+    click.echo(f"Retrieved {len(funding_ls)} funding data rows")
+    df_fund = pd.DataFrame(funding_ls)
+    df_fund.to_sql(name=Binance_funding_btcusdt.__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)

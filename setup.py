@@ -12,6 +12,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        kline_query=dbase_maintenance:get_candle_stick_data
+        kline_query=dbase_maintenance:get_kline_and_funding
     ''',
 )
