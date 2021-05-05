@@ -22,11 +22,26 @@ session = DBSession()
 @click.command()
 @click.option('--interval', default="1d", help="kline interval", type=click.Choice([constants.INTERVALS.i_1d, constants.INTERVALS.i_8h]))
 @click.option('--test', default='y', help="connect to testnet or mainnet", type=click.BOOL)
-@click.argument('symbol', type=click.Choice([constants.SYMBOLS.BNBUSDT, constants.SYMBOLS.BTCUSDT]))
+@click.argument('symbol', type=click.Choice([constants.SYMBOLS.BNBUSDT, constants.SYMBOLS.BTCUSDT, constants.SYMBOLS.ETHUSDT]))
 def get_kline_and_funding(interval, test, symbol):
-    tbl_dict = {"1d": constants.DBTABLE.iD, "8h": constants.DBTABLE.i8h}
-    session.query(tbl_dict[interval]).delete()
-    session.query(Binance_funding_btcusdt).delete()
+    tbl_dict = {
+        "btc1d": constants.DBTABLE.btciD,
+        "btc8h": constants.DBTABLE.btci8h,
+        "eth1d": constants.DBTABLE.ethiD,
+        "bnb1d": constants.DBTABLE.bnbiD,
+        "fund_eth": constants.DBTABLE.fund_eth,
+        "fund_btc": constants.DBTABLE.fund_btc,
+        "fund_bnb": constants.DBTABLE.fund_bnb
+    }
+
+    symbol_abbr = {
+        constants.SYMBOLS.ETHUSDT: "eth",
+        constants.SYMBOLS.BNBUSDT: "bnb",
+        constants.SYMBOLS.BTCUSDT: "btc"
+    }
+
+    session.query(tbl_dict[f"{symbol_abbr[symbol]}{interval}"]).delete()
+    session.query(tbl_dict[f"fund_{symbol_abbr[symbol]}"]).delete()
     session.commit()
     if test:
         client = binance_f.RequestClient(api_key=config.Config.BINANCE_TESTNET_API_KEY,
@@ -45,8 +60,9 @@ def get_kline_and_funding(interval, test, symbol):
         d["closeTime"] = datetime.datetime.utcfromtimestamp(d['closeTime'] / 1e3)
         ls.append(d)
     df = pd.DataFrame(ls)
+    click.echo(f"Retrieved {df.shape[0]} rows of data for {symbol}")
     # push to sql
-    df.to_sql(name=tbl_dict[interval].__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
+    df.to_sql(name=tbl_dict[f"{symbol_abbr[symbol]}{interval}"].__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
     funding_ls = []
     response_len = 1000
     start_time = 1567864800000
@@ -71,4 +87,4 @@ def get_kline_and_funding(interval, test, symbol):
 
     click.echo(f"Retrieved {len(funding_ls)} funding data rows")
     df_fund = pd.DataFrame(funding_ls)
-    df_fund.to_sql(name=Binance_funding_btcusdt.__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
+    df_fund.to_sql(name=tbl_dict[f"fund_{symbol_abbr[symbol]}"].__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
