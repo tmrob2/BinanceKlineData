@@ -22,22 +22,25 @@ session = DBSession()
 @click.command()
 @click.option('--interval', default="1d", help="kline interval", type=click.Choice([constants.INTERVALS.i_1d, constants.INTERVALS.i_8h]))
 @click.option('--test', default='y', help="connect to testnet or mainnet", type=click.BOOL)
-@click.argument('symbol', type=click.Choice([constants.SYMBOLS.BNBUSDT, constants.SYMBOLS.BTCUSDT, constants.SYMBOLS.ETHUSDT]))
+@click.argument('symbol', type=click.Choice([constants.SYMBOLS.BNBUSDT, constants.SYMBOLS.BTCUSDT, constants.SYMBOLS.ETHUSDT, constants.SYMBOLS.BTCUSD_PERP]))
 def get_kline_and_funding(interval, test, symbol):
     tbl_dict = {
         "btc1d": constants.DBTABLE.btciD,
+        "btc_perp1d": constants.DBTABLE.btcperpiD,
         "btc8h": constants.DBTABLE.btci8h,
         "eth1d": constants.DBTABLE.ethiD,
         "bnb1d": constants.DBTABLE.bnbiD,
         "fund_eth": constants.DBTABLE.fund_eth,
         "fund_btc": constants.DBTABLE.fund_btc,
-        "fund_bnb": constants.DBTABLE.fund_bnb
+        "fund_bnb": constants.DBTABLE.fund_bnb,
+        "fund_btc_perp": constants.DBTABLE.fund_btc_perp
     }
 
     symbol_abbr = {
         constants.SYMBOLS.ETHUSDT: "eth",
         constants.SYMBOLS.BNBUSDT: "bnb",
-        constants.SYMBOLS.BTCUSDT: "btc"
+        constants.SYMBOLS.BTCUSDT: "btc",
+        constants.SYMBOLS.BTCUSD_PERP: "btc_perp"
     }
 
     session.query(tbl_dict[f"{symbol_abbr[symbol]}{interval}"]).delete()

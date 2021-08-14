@@ -55,9 +55,7 @@ to error if the terminal help docs are read.
 ```sh
 (binance_kline_env)foo@bar:~$ kline_data --help
 ```
-An example might be to get the daily data from testnet for the symbol BTCUSDT:
-```sh
-(binance_kline_env)foo@bar:~$ kline_query  --interval 1d --test y BTCUSDT
+The syntax of the command is 
+```sh 
+$ kline_data --interval [1d, 8h] --test [y|n] symbol [BNBUSDT|ETHUSDT|BTCUSDT|BTCUSD_PERP]
 ```
-The syntax of the command is ```kline_data [OPTIONS] [ARGUMENT]```. The argument is always a ticker symbol.
-
