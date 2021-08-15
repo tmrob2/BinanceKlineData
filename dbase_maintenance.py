@@ -4,6 +4,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.engine.url import URL
 import config
 import pandas as pd
+import binance_d
+from binance_d.model.constant import CandlestickInterval
+from binance_d.requestclient import FuncResponse
 import binance_f
 from binance_f.model.constant import CandlestickInterval
 from binance_f.requestclient import FuncResponse
@@ -46,22 +49,38 @@ def get_kline_and_funding(interval, test, symbol):
     session.query(tbl_dict[f"{symbol_abbr[symbol]}{interval}"]).delete()
     session.query(tbl_dict[f"fund_{symbol_abbr[symbol]}"]).delete()
     session.commit()
+    initial_date = None
     if test:
         client = binance_f.RequestClient(api_key=config.Config.BINANCE_TESTNET_API_KEY,
                                          secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
                                          url=config.Config.TESTNET_URI)
     else:
-        client = binance_f.RequestClient(api_key=config.Config.BINANCE_API_KEY,
-                                         secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
-                                         url=config.Config.URI)
-    data: FuncResponse = client.get_candlestick_data(symbol=symbol, interval=interval, startTime=None, endTime=None, limit=1500)
+        if symbol == constants.SYMBOLS.BTCUSD_PERP:
+            client = binance_d.RequestClient(api_key=config.Config.BINANCE_API_KEY,
+                                             secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
+                                             url=config.Config.URID)
+            initial_date = datetime.datetime(year=2020, month=8, day=11)
+        else:
+            client = binance_f.RequestClient(api_key=config.Config.BINANCE_API_KEY,
+                                             secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
+                                             url=config.Config.URI)
+            initial_date = datetime.datetime(year=2019, month=10, day=8)
     ls = []
-    for candlestick in data.response:
-        d = candlestick.__dict__
-        d["id"] = f"{symbol}-{d['openTime']}"
-        d["openTime"] = datetime.datetime.utcfromtimestamp(d['openTime'] / 1e3)
-        d["closeTime"] = datetime.datetime.utcfromtimestamp(d['closeTime'] / 1e3)
-        ls.append(d)
+    while initial_date < datetime.datetime.utcnow():
+        tdelta = datetime.timedelta(days=200)
+        end_date_dt = initial_date + tdelta
+        if end_date_dt > datetime.datetime.utcnow():
+            end_date_dt = datetime.datetime.utcnow()
+        end_date_ts = int(datetime.datetime.timestamp(end_date_dt) * 1000)
+        start_date_ts = int(datetime.datetime.timestamp(initial_date) * 1000)
+        data: FuncResponse = client.get_candlestick_data(symbol=symbol, interval=interval, startTime=start_date_ts, endTime=end_date_ts, limit=1500)
+        initial_date = end_date_dt + datetime.timedelta(days=1)
+        for candlestick in data.response:
+            d = candlestick.__dict__
+            d["id"] = f"{symbol}-{d['openTime']}"
+            d["openTime"] = datetime.datetime.utcfromtimestamp(d['openTime'] / 1e3)
+            d["closeTime"] = datetime.datetime.utcfromtimestamp(d['closeTime'] / 1e3)
+            ls.append(d)
     df = pd.DataFrame(ls)
     click.echo(f"Retrieved {df.shape[0]} rows of data for {symbol}")
     # push to sql

@@ -40,10 +40,10 @@ class Binance_v2_1d_btcusd_perp(Base):
     close = Column('close', Float)
     volume = Column('volume', Float)
     closeTime = Column('closeTime', TIMESTAMP)
-    quoteAssetVolume = Column('quoteAssetVolume', Float)
+    baseVolume = Column('baseVolume', Float)
     numTrades = Column('numTrades', Integer)
-    takerBuyBaseAssetVolume = Column('takerBuyBaseAssetVolume', Float)
-    takerBuyQuoteAssetVolume = Column('takerBuyQuoteAssetVolume', Float)
+    takerBuyBaseAssetVolume = Column('takerBuyQuoteAssetVolume', Float)
+    takerBuyQuoteAssetVolume = Column('takerBuyBaseAssetVolume', Float)
     ignore = Column('ignore', BigInteger)
 
 class Binance_v2_1d_bnbusdt(Base):
