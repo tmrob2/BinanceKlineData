@@ -106,7 +106,7 @@ def get_kline_and_funding(interval, test, symbol, start):
     df.to_sql(name=tbl_dict[f"{symbol_abbr[symbol]}{interval}"].__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
     funding_ls = []
     response_len = 1000
-    start_time = int(datetime.datetime.timestamp(initial_date) * 1000)
+    start_time = 1567864800000 #int(datetime.datetime.timestamp(initial_date) * 1000)
     counter = 0
     while response_len == 1000:
         click.echo(f"Getting funding rate: {counter}")
