@@ -22,6 +22,15 @@ DBSession = sessionmaker()
 DBSession.bind = engine
 session = DBSession()
 
+@click.group()
+def cli():
+    """
+    A cli helper to update binance data for channel calculations
+    
+    Some useful information on times: 
+    BTCUSDT: M Futures contract start date: 2020-8-11
+    """
+
 @click.command()
 @click.option('--interval', default="1d", help="kline interval", type=click.Choice([constants.INTERVALS.i_1d, constants.INTERVALS.i_8h]))
 @click.option('--test', default='y', help="connect to testnet or mainnet", type=click.BOOL)
@@ -55,7 +64,7 @@ def get_kline_and_funding(interval, test, symbol, start):
         constants.SYMBOLS.BNBUSD_PERP: "bnb_perp",
     }
 
-    date_format = "%Y-%m-%d"
+    date_format = "%Y-%m-%d %H:%M:%S"
 
     session.query(tbl_dict[f"{symbol_abbr[symbol]}{interval}"]).delete()
     session.query(tbl_dict[f"fund_{symbol_abbr[symbol]}"]).delete()
