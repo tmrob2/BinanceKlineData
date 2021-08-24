@@ -63,7 +63,7 @@ class Binance_v2_1d_bnbusdt(Base):
     ignore = Column('ignore', BigInteger)
 
 class Binance_v2_1d_bnbusd_perp(Base):
-    __tablename__ = "binance_v2_1d_bnbusdt"
+    __tablename__ = "binance_v2_1d_bnbusd_perp"
     id = Column(String, primary_key=True)
     openTime = Column('openTime', TIMESTAMP)
     open = Column('open', Float)
