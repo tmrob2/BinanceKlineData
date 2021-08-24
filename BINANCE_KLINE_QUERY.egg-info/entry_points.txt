@@ -1,4 +1,0 @@
-
-        [console_scripts]
-        kline_query=dbase_maintenance:get_kline_and_funding
-    
