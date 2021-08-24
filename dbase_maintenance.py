@@ -25,10 +25,14 @@ session = DBSession()
 @click.command()
 @click.option('--interval', default="1d", help="kline interval", type=click.Choice([constants.INTERVALS.i_1d, constants.INTERVALS.i_8h]))
 @click.option('--test', default='y', help="connect to testnet or mainnet", type=click.BOOL)
+@click.option('--start', help="The start date to extract data from, date format: '%Y-%m-%d'")
 @click.argument('symbol', type=click.Choice([
     constants.SYMBOLS.BNBUSDT, constants.SYMBOLS.BTCUSDT, constants.SYMBOLS.ETHUSDT, constants.SYMBOLS.BTCUSD_PERP,
     constants.SYMBOLS.BNBUSD_PERP]))
-def get_kline_and_funding(interval, test, symbol):
+def get_kline_and_funding(interval, test, symbol, start):
+    if start is None:
+        print("A start date must be given")
+        return
     tbl_dict = {
         "btc1d": constants.DBTABLE.btciD,
         "btc_perp1d": constants.DBTABLE.btcperpiD,
@@ -51,10 +55,13 @@ def get_kline_and_funding(interval, test, symbol):
         constants.SYMBOLS.BNBUSD_PERP: "bnb_perp",
     }
 
+    date_format = "%Y-%m-%d"
+
     session.query(tbl_dict[f"{symbol_abbr[symbol]}{interval}"]).delete()
     session.query(tbl_dict[f"fund_{symbol_abbr[symbol]}"]).delete()
     session.commit()
     initial_date = None
+    initial_date = datetime.datetime.strptime(start, date_format)
     if test:
         client = binance_f.RequestClient(api_key=config.Config.BINANCE_TESTNET_API_KEY,
                                          secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
@@ -64,12 +71,10 @@ def get_kline_and_funding(interval, test, symbol):
             client = binance_d.RequestClient(api_key=config.Config.BINANCE_API_KEY,
                                              secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
                                              url=config.Config.URID)
-            initial_date = datetime.datetime(year=2020, month=8, day=11)
         else:
             client = binance_f.RequestClient(api_key=config.Config.BINANCE_API_KEY,
                                              secret_key=config.Config.BINANCE_TESTNET_API_SECRET,
                                              url=config.Config.URI)
-            initial_date = datetime.datetime(year=2019, month=10, day=8)
     ls = []
     while initial_date < datetime.datetime.utcnow():
         tdelta = datetime.timedelta(days=200)
@@ -92,7 +97,7 @@ def get_kline_and_funding(interval, test, symbol):
     df.to_sql(name=tbl_dict[f"{symbol_abbr[symbol]}{interval}"].__tablename__, con=engine, if_exists='append', index=False, chunksize=1000)
     funding_ls = []
     response_len = 1000
-    start_time = 1567864800000
+    start_time = int(datetime.datetime.timestamp(initial_date) * 1000)
     counter = 0
     while response_len == 1000:
         click.echo(f"Getting funding rate: {counter}")
