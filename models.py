@@ -62,6 +62,22 @@ class Binance_v2_1d_bnbusdt(Base):
     takerBuyQuoteAssetVolume = Column('takerBuyQuoteAssetVolume', Float)
     ignore = Column('ignore', BigInteger)
 
+class Binance_v2_1d_bnbusd_perp(Base):
+    __tablename__ = "binance_v2_1d_bnbusdt"
+    id = Column(String, primary_key=True)
+    openTime = Column('openTime', TIMESTAMP)
+    open = Column('open', Float)
+    high = Column('high', Float)
+    low = Column('low', Float)
+    close = Column('close', Float)
+    volume = Column('volume', Float)
+    closeTime = Column('closeTime', TIMESTAMP)
+    baseVolume = Column('baseVolume', Float)
+    numTrades = Column('numTrades', Integer)
+    takerBuyBaseAssetVolume = Column('takerBuyQuoteAssetVolume', Float)
+    takerBuyQuoteAssetVolume = Column('takerBuyBaseAssetVolume', Float)
+    ignore = Column('ignore', BigInteger)
+
 class Binance_v2_1d_ethusdt(Base):
     __tablename__ = "binance_v2_1d_ethusdt"
     id = Column(String, primary_key=True)
@@ -110,6 +126,13 @@ class Binance_funding_btcusd_perp(Base):
 
 class Binance_funding_bnbusdt(Base):
     __tablename__ = "binance_v2_funding_bnbusdt"
+    id = Column(String, primary_key=True)
+    symbol = Column("symbol", String)
+    fundingRate = Column("fundingRate", Float)
+    fundingTime = Column("fundingTime", TIMESTAMP)
+
+class Binance_funding_bnbusd_perp(Base):
+    __tablename__ = "binance_v2_funding_bnbusd_perp"
     id = Column(String, primary_key=True)
     symbol = Column("symbol", String)
     fundingRate = Column("fundingRate", Float)

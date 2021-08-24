@@ -1,0 +1,8 @@
+README.md
+setup.py
+BINANCE_KLINE_QUERY.egg-info/PKG-INFO
+BINANCE_KLINE_QUERY.egg-info/SOURCES.txt
+BINANCE_KLINE_QUERY.egg-info/dependency_links.txt
+BINANCE_KLINE_QUERY.egg-info/entry_points.txt
+BINANCE_KLINE_QUERY.egg-info/requires.txt
+BINANCE_KLINE_QUERY.egg-info/top_level.txt
